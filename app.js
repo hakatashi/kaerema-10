@@ -11,6 +11,8 @@ var flash = require('connect-flash');
 var config = require('./config');
 config.root = 'http://' + config.hostname + ':' + config.port;
 
+var ranking = new sqlite3.Database('ranking.sqlite3');
+
 /***** Setup passport *****/
 
 passport.serializeUser(function(user, done) {
