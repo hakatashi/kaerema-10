@@ -2,7 +2,6 @@ var express = require('express');
 var session = require('express-session');
 var morgan = require('morgan');
 var sqlite3 = require('sqlite3');
-var ect = require('ect');
 var passport = require('passport');
 var passportLocal = require('passport-local');
 var bodyParser = require('body-parser');
@@ -54,12 +53,8 @@ passport.use(new passportLocal.Strategy(
 /***** Setup express.js *****/
 
 var app = express();
-app.engine('ect', ect({
-	watch: true,
-	root: __dirname + '/views',
-	ext: '.ect'
-}).render);
-app.set('view engine', 'ect');
+app.set('views', __dirname + '/views');
+app.set('view engine', 'jade');
 app.use(morgan());
 app.use(bodyParser.urlencoded({
 	extended: true
