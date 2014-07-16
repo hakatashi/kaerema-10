@@ -15,7 +15,7 @@ app.get('/', function (req, res) {
 	res.send('It works!');
 });
 
-passport.use(new passportLocal.Strategy({
+passport.use(new passportLocal.Strategy(
 	function (username, password, done) {
 		// find matching user
 		var matchedUser = null;
@@ -41,7 +41,7 @@ passport.use(new passportLocal.Strategy({
 		done(null, matchedUser);
 		return;
 	}
-}));
+));
 
 var server = app.listen(10721, function () {
 	console.log('Listening on port %d', server.address().port);
