@@ -1,21 +1,25 @@
 var express = require('express');
+var session = require('express-session');
 var morgan = require('morgan');
 var sqlite3 = require('sqlite3');
 var ect = require('ect');
 var passport = require('passport');
 var passportLocal = require('passport-local');
+var bodyParser = require('body-parser');
+var flash = require('connect-flash');
 
 var config = require('./config');
 config.root = 'http://' + config.hostname + ':' + config.port;
 
-var app = express();
-app.engine('ect', ect({
-	watch: true,
-	root: __dirname + '/views',
-	ext: '.ect'
-}).render);
-app.set('view engine', 'ect');
-app.use(morgan());
+/***** Setup passport *****/
+
+passport.serializeUser(function(user, done) {
+	done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+	done(null, config.users[id - 1]);
+});
 
 passport.use(new passportLocal.Strategy(
 	function (username, password, done) {
@@ -45,6 +49,30 @@ passport.use(new passportLocal.Strategy(
 	}
 ));
 
+/***** Setup express.js *****/
+
+var app = express();
+app.engine('ect', ect({
+	watch: true,
+	root: __dirname + '/views',
+	ext: '.ect'
+}).render);
+app.set('view engine', 'ect');
+app.use(morgan());
+app.use(bodyParser.urlencoded({
+	extended: true
+}));
+app.use(session({
+	secret: config.sessionSecret,
+	resave: true,
+	saveUninitialized: true
+}));
+app.use(flash());
+app.use(passport.initialize());
+app.use(passport.session());
+
+/***** Routes *****/
+
 app.get('/', function (req, res) {
 	res.send('It works!');
 });
@@ -53,6 +81,12 @@ app.get('/login', function (req, res) {
 	res.render('login', {message: null});
 });
 
-var server = app.listen(10721, function () {
+app.post('/login', passport.authenticate('local', {
+	failureRedirect: '/login',
+	failureFlash: true,
+	successRedirect: '/'
+}));
+
+var server = app.listen(config.port, function () {
 	console.log('Listening on port %d', server.address().port);
 });
