@@ -73,6 +73,13 @@ app.use(passport.session());
 
 /***** Routes *****/
 
+var ensureAuthenticated = function (req, res, next) {
+	if (req.isAuthenticated()) {
+		return next();
+	}
+	res.redirect('/login');
+};
+
 app.get('/', function (req, res) {
 	res.send('It works!');
 });
@@ -86,6 +93,15 @@ app.post('/login', passport.authenticate('local', {
 	failureFlash: true,
 	successRedirect: '/'
 }));
+
+app.get('/logout', function (req, res) {
+	req.logout();
+	res.redirect('/');
+});
+
+app.get('/session', ensureAuthenticated, function (req, res) {
+	res.render('session', {user: req.user.username});
+});
 
 var server = app.listen(config.port, function () {
 	console.log('Listening on port %d', server.address().port);
