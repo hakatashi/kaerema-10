@@ -6,6 +6,7 @@ var passport = require('passport');
 var passportLocal = require('passport-local');
 var bodyParser = require('body-parser');
 var flash = require('connect-flash');
+var serveStatic = require('serve-static');
 
 var config = require('./config');
 config.root = 'http://' + config.hostname + ':' + config.port;
@@ -67,6 +68,10 @@ app.use(session({
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(serveStatic('assets', {
+	index: false,
+	redirect: false
+}));
 
 /***** Routes *****/
 
@@ -82,7 +87,8 @@ app.get('/', function (req, res) {
 		ranking.all('SELECT rank, title, author FROM ranking', function (error, rows) {
 			if (!error) {
 				res.render('index', {
-					books: rows
+					books: rows,
+					scripts: ['js/index.js']
 				});
 			}
 		});
