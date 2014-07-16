@@ -11,7 +11,7 @@ var serveStatic = require('serve-static');
 var config = require('./config');
 config.root = 'http://' + config.hostname + ':' + config.port;
 
-var ranking = new sqlite3.Database('ranking.sqlite3');
+var db = new sqlite3.Database('ranking.sqlite3');
 
 /***** Setup passport *****/
 
@@ -83,14 +83,33 @@ var ensureAuthenticated = function (req, res, next) {
 };
 
 app.get('/', function (req, res) {
-	ranking.serialize(function () {
-		ranking.all('SELECT rank, title, author FROM ranking', function (error, rows) {
-			if (!error) {
-				res.render('index', {
-					books: rows,
-					scripts: ['js/index.js']
-				});
+	var ranking = null;
+
+	db.serialize(function () {
+		db.all('SELECT * FROM ranking NATURAL LEFT OUTER JOIN guesses', function (error, rows) {
+			if (error) {
+				console.log(error);
+				return;
 			}
+
+			ranking = rows;
+
+			if (!ranking) {
+				res.send(500, 'Something went wrong!');
+				return;
+			}
+
+			ranking.forEach(function (rank) {
+				if (!rank.name) {
+					rank.title = '???';
+					rank.author = '???';
+				}
+			});
+
+			res.render('index', {
+				ranking: ranking,
+				scripts: ['js/index.js']
+			});
 		});
 	});
 });

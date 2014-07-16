@@ -18,10 +18,10 @@ block content
 				th #
 				th title
 				th author
-				th winner
-			each book in books
+				th scorer
+			each rank in ranking
 				tr
-					td= book.rank
-					td= book.title
-					td= book.author
-					td
+					td= rank.rank
+					td= rank.title
+					td= rank.author
+					td= rank.name
