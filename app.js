@@ -78,7 +78,15 @@ var ensureAuthenticated = function (req, res, next) {
 };
 
 app.get('/', function (req, res) {
-	res.render('index');
+	ranking.serialize(function () {
+		ranking.all('SELECT rank, title, author FROM ranking', function (error, rows) {
+			if (!error) {
+				res.render('index', {
+					books: rows
+				});
+			}
+		});
+	});
 });
 
 app.get('/login', function (req, res) {

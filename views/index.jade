@@ -1,4 +1,27 @@
 extends ./layout.jade
 
 block content
-	p It works!
+	h1 Guess the books hakatashi loves :)
+
+	form(method='post')
+		div.form-group
+			label.control-label(for='title') Title
+			input.form-control(type='text', id='title', placeholder='Title')
+		div.form-group
+			label.control-label(for='name') Your name (optional)
+			input.form-control(type='text', id='name', placeholder='Your name')
+		button.btn.btn-default(type='submit') Submit
+
+	div.table-responsive(style='margin-top: 24px;')
+		table.table.table-hover
+			tr
+				th #
+				th title
+				th author
+				th winner
+			each book in books
+				tr
+					td= book.rank
+					td= book.title
+					td= book.author
+					td
