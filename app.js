@@ -105,7 +105,7 @@ var renderRanking = function (req, res, params) {
 
 			params = params || {};
 			params.ranking = ranking;
-			params.sripts = ['js/index.js'];
+			params.scripts = ['js/index.js'];
 
 			res.render('index', params);
 		});
@@ -118,7 +118,23 @@ app.get('/', function (req, res) {
 
 app.post('/', function (req, res) {
 	if (req.isAuthenticated()) {
-		renderRanking(req, res, {admin: true});
+		if (req.body.registTitle && req.body.registAuthor) {
+			db.serialize(function () {
+				db.run('INSERT INTO ranking (title, author) VALUES($title, $author)', {
+					$title: req.body.registTitle,
+					$author: req.body.registAuthor
+				}, function (error) {
+					if (error) {
+						console.log(error);
+						res.send(500, 'Something went wrong!');
+					}
+
+					renderRanking(req, res, {admin: true});
+				});
+			});
+		} else {
+			renderRanking(req, res, {admin: true});
+		}
 	} else {
 		var message = null;
 
@@ -135,7 +151,14 @@ app.post('/', function (req, res) {
 						res.send(500, 'Something went wrong!');
 					}
 
-					if (row) {
+					if (!row) {
+						message = 'Oops...not found.';
+
+						renderRanking(req, res, {
+							message: message,
+							name: req.body.name
+						});
+					} else {
 						var rank = row.rank;
 						db.get('SELECT * FROM guesses WHERE rank = $rank', {
 							$rank: rank
@@ -166,13 +189,6 @@ app.post('/', function (req, res) {
 								message: message,
 								name: req.body.name
 							});
-						});
-					} else {
-						message = 'Oops...not found.';
-
-						renderRanking(req, res, {
-							message: message,
-							name: req.body.name
 						});
 					}
 				});
