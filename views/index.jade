@@ -1,19 +1,33 @@
 extends ./layout.jade
 
 block content
-	h1 Guess the books hakatashi loves :)
+	if !admin
+		h1 Guess the books hakatashi loves :)
 
-	if message
-		p.bg-info(style='padding: 15px;')= message
+		if message
+			p.bg-info(style='padding: 15px;')= message
 
-	form(method='post')
-		div.form-group
-			label.control-label(for='title') Title
-			input.form-control#title(type='text', name='title', placeholder='Title')
-		div.form-group
-			label.control-label(for='name') Your name (optional)
-			input.form-control#name(type='text', name='name', placeholder='Your name')
-		button.btn.btn-default(type='submit') Submit
+		form(method='post', name='submit')
+			div.form-group
+				label.control-label(for='title') Title
+				input.form-control#title(type='text', name='title', placeholder='Title')
+			div.form-group
+				label.control-label(for='name') Your name (optional)
+				input.form-control#name(type='text', name='name', placeholder='Your name', value= name)
+			button.btn.btn-default(type='submit') Submit
+	else
+		h1 Lalala...
+
+		form(method='post', name='submit')
+			div.form-group
+				label.control-label(for='regist-title') Title
+				input.form-control#regist-title(type='text', name='regist-title', placeholder='Title')
+			div.form-group
+				label.control-label(for='regist-author') Author
+				input.form-control#regist-author(type='text', name='regist-author', placeholder='Author')
+			button.btn.btn-default(type='submit') Submit
+
+
 
 	div.table-responsive(style='margin-top: 24px;')
 		table.table.table-hover

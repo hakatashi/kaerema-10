@@ -82,7 +82,7 @@ var ensureAuthenticated = function (req, res, next) {
 	res.redirect('/login');
 };
 
-var renderRanking = function (req, res, message) {
+var renderRanking = function (req, res, params) {
 	var ranking = null;
 
 	db.serialize(function () {
@@ -94,78 +94,95 @@ var renderRanking = function (req, res, message) {
 
 			ranking = rows;
 
-			ranking.forEach(function (rank) {
-				if (!rank.name) {
-					rank.title = '???';
-					rank.author = '???';
-				}
-			});
+			if (!params.admin) {
+				ranking.forEach(function (rank) {
+					if (!rank.name) {
+						rank.title = '???';
+						rank.author = '???';
+					}
+				});
+			}
 
-			res.render('index', {
-				ranking: ranking,
-				scripts: ['js/index.js'],
-				message: message
-			});
+			params = params || {};
+			params.ranking = ranking;
+			params.sripts = ['js/index.js'];
+
+			res.render('index', params);
 		});
 	});
 };
 
 app.get('/', function (req, res) {
-	renderRanking(req, res);
+	renderRanking(req, res, {admin: req.isAuthenticated()});
 });
 
 app.post('/', function (req, res) {
-	var message = null;
+	if (req.isAuthenticated()) {
+		renderRanking(req, res, {admin: true});
+	} else {
+		var message = null;
 
-	if (req.body.title) {
-		var name = req.body.name || 'nanashi';
-		var title = req.body.title;
+		if (req.body.title) {
+			var name = req.body.name || 'nanashi';
+			var title = req.body.title;
 
-		db.serialize(function () {
-			db.get('SELECT rank FROM ranking WHERE title = $title', {
-				$title: title
-			}, function (error, row) {
-				if (error) {
-					console.log(error);
-					res.send(500, 'Something went wrong!');
-				}
+			db.serialize(function () {
+				db.get('SELECT rank FROM ranking WHERE title = $title', {
+					$title: title
+				}, function (error, row) {
+					if (error) {
+						console.log(error);
+						res.send(500, 'Something went wrong!');
+					}
 
-				if (row) {
-					var rank = row.rank;
-					db.get('SELECT * FROM guesses WHERE rank = $rank', {
-						$rank: rank
-					}, function (error, row) {
-						if (error) {
-							console.log(error);
-							res.send(500, 'Something went wrong!');
-						}
+					if (row) {
+						var rank = row.rank;
+						db.get('SELECT * FROM guesses WHERE rank = $rank', {
+							$rank: rank
+						}, function (error, row) {
+							if (error) {
+								console.log(error);
+								res.send(500, 'Something went wrong!');
+							}
 
-						if (row) {
-							message = title + ' is already opened :(';
-						} else {
-							db.run('INSERT INTO guesses VALUES($rank, $name, $date)', {
-								$rank: rank,
-								$name: name,
-								$date: Math.floor(new Date() / 1000)
-							}, function (error) {
-								if (error) {
-									console.log(error);
-									res.send(500, 'Something went wrong!');
-								}
+							if (row) {
+								message = title + ' is already opened :(';
+							} else {
+								db.run('INSERT INTO guesses VALUES($rank, $name, $date)', {
+									$rank: rank,
+									$name: name,
+									$date: Math.floor(new Date() / 1000)
+								}, function (error) {
+									if (error) {
+										console.log(error);
+										res.send(500, 'Something went wrong!');
+									}
+								});
+
+								message = 'You\'ve opened #' + rank + ' ' + title + '!';
+							}
+
+							renderRanking(req, res, {
+								message: message,
+								name: req.body.name
 							});
+						});
+					} else {
+						message = 'Oops...not found.';
 
-							message = 'You\'ve opened #' + rank + ' ' + title + '!';
-						}
-
-						renderRanking(req, res, message);
-					});
-				} else {
-					message = 'Oops...not found.';
-
-					renderRanking(req, res, message);
-				}
+						renderRanking(req, res, {
+							message: message,
+							name: req.body.name
+						});
+					}
+				});
 			});
-		});
+		} else {
+			renderRanking(req, res, {
+				message: message,
+				name: req.body.name
+			});
+		}
 	}
 });
 
