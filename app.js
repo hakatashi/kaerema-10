@@ -131,8 +131,9 @@ app.post('/', function (req, res) {
 				}
 
 				if (row) {
+					var rank = row.rank;
 					db.get('SELECT * FROM guesses WHERE rank = $rank', {
-						$rank: row.rank
+						$rank: rank
 					}, function (error, row) {
 						if (error) {
 							console.log(error);
@@ -140,10 +141,10 @@ app.post('/', function (req, res) {
 						}
 
 						if (row) {
-							message = title  + ' is already opened :(';
+							message = title + ' is already opened :(';
 						} else {
 							db.run('INSERT INTO guesses VALUES($rank, $name, $date)', {
-								$rank: row.rank,
+								$rank: rank,
 								$name: name,
 								$date: Math.floor(new Date() / 1000)
 							}, function (error) {
@@ -153,7 +154,7 @@ app.post('/', function (req, res) {
 								}
 							});
 
-							message = 'You\'ve opened #' + row.rank + ' ' + title + '!';
+							message = 'You\'ve opened #' + rank + ' ' + title + '!';
 						}
 
 						renderRanking(req, res, message);
