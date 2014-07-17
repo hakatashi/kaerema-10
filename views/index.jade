@@ -3,13 +3,16 @@ extends ./layout.jade
 block content
 	h1 Guess the books hakatashi loves :)
 
+	if message
+		p.bg-info(style='padding: 15px;')= message
+
 	form(method='post')
 		div.form-group
 			label.control-label(for='title') Title
-			input.form-control(type='text', id='title', placeholder='Title')
+			input.form-control#title(type='text', name='title', placeholder='Title')
 		div.form-group
 			label.control-label(for='name') Your name (optional)
-			input.form-control(type='text', id='name', placeholder='Your name')
+			input.form-control#name(type='text', name='name', placeholder='Your name')
 		button.btn.btn-default(type='submit') Submit
 
 	div.table-responsive(style='margin-top: 24px;')

@@ -82,22 +82,17 @@ var ensureAuthenticated = function (req, res, next) {
 	res.redirect('/login');
 };
 
-app.get('/', function (req, res) {
+var renderRanking = function (req, res, message) {
 	var ranking = null;
 
 	db.serialize(function () {
 		db.all('SELECT * FROM ranking NATURAL LEFT OUTER JOIN guesses', function (error, rows) {
 			if (error) {
 				console.log(error);
-				return;
+				res.send(500, 'Something went wrong!');
 			}
 
 			ranking = rows;
-
-			if (!ranking) {
-				res.send(500, 'Something went wrong!');
-				return;
-			}
 
 			ranking.forEach(function (rank) {
 				if (!rank.name) {
@@ -108,10 +103,69 @@ app.get('/', function (req, res) {
 
 			res.render('index', {
 				ranking: ranking,
-				scripts: ['js/index.js']
+				scripts: ['js/index.js'],
+				message: message
 			});
 		});
 	});
+};
+
+app.get('/', function (req, res) {
+	renderRanking(req, res);
+});
+
+app.post('/', function (req, res) {
+	var message = null;
+
+	if (req.body.title) {
+		var name = req.body.name || 'nanashi';
+		var title = req.body.title;
+
+		db.serialize(function () {
+			db.get('SELECT rank FROM ranking WHERE title = $title', {
+				$title: title
+			}, function (error, row) {
+				if (error) {
+					console.log(error);
+					res.send(500, 'Something went wrong!');
+				}
+
+				if (row) {
+					db.get('SELECT * FROM guesses WHERE rank = $rank', {
+						$rank: row.rank
+					}, function (error, row) {
+						if (error) {
+							console.log(error);
+							res.send(500, 'Something went wrong!');
+						}
+
+						if (row) {
+							message = title  + ' is already opened :(';
+						} else {
+							db.run('INSERT INTO guesses VALUES($rank, $name, $date)', {
+								$rank: row.rank,
+								$name: name,
+								$date: Math.floor(new Date() / 1000)
+							}, function (error) {
+								if (error) {
+									console.log(error);
+									res.send(500, 'Something went wrong!');
+								}
+							});
+
+							message = 'You\'ve opened #' + row.rank + ' ' + title + '!';
+						}
+
+						renderRanking(req, res, message);
+					});
+				} else {
+					message = 'Oops...not found.';
+
+					renderRanking(req, res, message);
+				}
+			});
+		});
+	}
 });
 
 app.get('/login', function (req, res) {
