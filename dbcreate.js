@@ -12,4 +12,9 @@ db.serialize(function () {
 			console.log(error);
 		}
 	});
+	db.run('CREATE TABLE misses (title TEXT, name TEXT, date TEXT)', function (error) {
+		if (error) {
+			console.log(error);
+		}
+	});
 });

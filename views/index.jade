@@ -41,5 +41,11 @@ block content
 					td= rank.author
 					td= rank.name
 
+	h2 Misses
+
+	ul
+		each miss in misses
+			li= miss.title
+
 	p
 		a(href='login') admin

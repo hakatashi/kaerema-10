@@ -103,11 +103,19 @@ var renderRanking = function (req, res, params) {
 				});
 			}
 
-			params = params || {};
-			params.ranking = ranking;
-			params.scripts = ['js/index.js'];
+			db.all('SELECT * FROM misses', function (error, rows) {
+				if (error) {
+					console.log(error);
+					res.send(500, 'Something went wrong!');
+				}
 
-			res.render('index', params);
+				params = params || {};
+				params.ranking = ranking;
+				params.misses = rows;
+				params.scripts = ['js/index.js'];
+
+				res.render('index', params);
+			});
 		});
 	});
 };
@@ -153,6 +161,33 @@ app.post('/', function (req, res) {
 
 					if (!row) {
 						message = 'Oops...not found.';
+
+						db.get('SELECT * FROM misses WHERE title = $title', {
+							$title: title
+						}, function (error, row) {
+							if (error) {
+								console.log(error);
+								res.send(500, 'Something went wrong!');
+							}
+
+							if (!row) {
+								db.run('INSERT INTO misses VALUES($title, $name, $date)', {
+									$title: title,
+									$name: name,
+									$date: Math.floor(new Date() / 1000)
+								}, function (error) {
+									if (error) {
+										console.log(error);
+										res.send(500, 'Something went wrong!');
+									}
+								});
+							}
+
+							renderRanking(req, res, {
+								message: message,
+								name: req.body.name
+							});
+						});
 
 						renderRanking(req, res, {
 							message: message,
