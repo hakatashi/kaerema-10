@@ -103,7 +103,7 @@ var renderRanking = function (req, res, params) {
 				});
 			}
 
-			db.all('SELECT * FROM misses', function (error, rows) {
+			db.all('SELECT * FROM misses ORDER BY date DESC LIMIT 100', function (error, rows) {
 				if (error) {
 					console.log(error);
 					res.send(500, 'Something went wrong!');
