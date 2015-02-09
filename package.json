@@ -11,15 +11,15 @@
   "author": "hakatashi",
   "license": "MIT",
   "dependencies": {
-    "body-parser": "~1.4.3",
+    "body-parser": "~1.11.0",
     "connect-flash": "~0.1.1",
-    "express": "~4.6.1",
-    "express-session": "~1.6.5",
-    "jade": "~1.4.1",
-    "morgan": "~1.1.1",
+    "express": "~4.11.2",
+    "express-session": "~1.10.2",
+    "jade": "~1.9.2",
+    "morgan": "~1.5.1",
     "passport": "~0.2.0",
     "passport-local": "~1.0.0",
     "serve-static": "~1.8.1",
-    "sqlite3": "~2.2.4"
+    "sqlite3": "~3.0.4"
   }
 }

@@ -56,7 +56,7 @@ passport.use(new passportLocal.Strategy(
 var app = express();
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
-app.use(morgan());
+app.use(morgan('combined'));
 app.use(bodyParser.urlencoded({
 	extended: true
 }));
